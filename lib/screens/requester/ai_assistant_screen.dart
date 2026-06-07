@@ -293,7 +293,9 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
-                    textCapitalization: TextCapitalization.sentences,
+                    keyboardType: TextInputType.multiline,
+                    minLines: 1,
+                    maxLines: 4,
                     decoration: InputDecoration(
                       hintText: l10n.askEAssistAI,
                       border: OutlineInputBorder(

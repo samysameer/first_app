@@ -6,7 +6,7 @@ class AIService {
   static const String _apiKey = 'YOUR_GEMINI_API_KEY';
   
   static final GenerativeModel _model = GenerativeModel(
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     apiKey: _apiKey,
   );
 
@@ -17,33 +17,36 @@ class AIService {
     }
 
     try {
-      final List<Content> contents = [];
+      final StringBuffer prompt = StringBuffer();
       
-      // System instructions (provided as prefix)
-      contents.add(Content.text(
-        "System Instruction: You are E-Assist AI, an expert emergency response assistant. "
+      // System instructions
+      prompt.writeln("System Instruction: You are E-Assist AI, an expert emergency response assistant. "
         "Your mission is to provide accurate first aid advice, explain emergency procedures clearly, "
         "and help users handle crisis situations calmly and safely. Keep responses concise, supportive, and safety-focused. "
-        "If the user describes a critical medical emergency, always advise them to call official emergency numbers (like 123 in Egypt)."
-      ));
+        "If the user describes a critical medical emergency, always advise them to call official emergency numbers (like 123 in Egypt). "
+        "IMPORTANT: You MUST respond entirely in the exact same language that the user used in their most recent message (e.g., Arabic, English, French, German, etc.).\n");
 
       // Append history
       for (var msg in history) {
         final isUser = msg['role'] == 'user';
         if (isUser) {
-          contents.add(Content.text("User: ${msg['content']}"));
+          prompt.writeln("User: ${msg['content']}");
         } else {
-          contents.add(Content.text("E-Assist AI: ${msg['content']}"));
+          prompt.writeln("E-Assist AI: ${msg['content']}");
         }
       }
 
       // Add the new message
-      contents.add(Content.text("User: $message"));
+      prompt.writeln("User: $message");
+      prompt.writeln("E-Assist AI:");
 
-      final response = await _model.generateContent(contents);
+      final response = await _model.generateContent([Content.text(prompt.toString())]);
       return response.text ?? "I'm sorry, I couldn't generate a response.";
     } catch (e) {
       print('AI Chat Error: $e');
+      if (_apiKey != 'YOUR_GEMINI_API_KEY' && _apiKey.isNotEmpty) {
+        return "Error from Gemini: $e";
+      }
       return _generateSmartLocalResponse(message);
     }
   }
